@@ -3,6 +3,11 @@
     <TargetFrameworks>net10.0;net10.0-ios;net10.0-desktop</TargetFrameworks>
     <UnoSingleProject>true</UnoSingleProject>
     <OutputType>Library</OutputType>
+    <IsPackable>true</IsPackable>
+    <PackageId>CommunityToolkit.LiquidGlass</PackageId>
+    <Title>Liquid Glass Theme for Windows Community Toolkit Controls</Title>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageTags>uno-platform;community-toolkit;winui;liquid-glass;theme;macos;ios;ipados;xaml</PackageTags>
     <!-- Ensures the .xr.xml files are generated in a proper layout folder -->
     <GenerateLibraryLayout>true</GenerateLibraryLayout>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -17,6 +22,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Uno.Themes.LiquidGlass\Uno.Themes.LiquidGlass.csproj" />
+
     <PackageReference Include="CommunityToolkit.WinUI.Controls.Primitives" />
     <PackageReference Include="CommunityToolkit.WinUI.Controls.SettingsControls" />
     <PackageReference Include="CommunityToolkit.WinUI.Controls.Segmented" />
@@ -31,5 +38,9 @@
     <!-- DataGrid from the Uno.WindowsCommunityToolkit 7.x fork (namespace
          CommunityToolkit.WinUI.UI.Controls) — WCT 8.x never shipped a DataGrid -->
     <PackageReference Include="Uno.CommunityToolkit.WinUI.UI.Controls.DataGrid" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="/" />
   </ItemGroup>
 </Project>

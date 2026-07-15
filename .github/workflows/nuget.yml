@@ -1,0 +1,141 @@
+name: NuGet packages
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: NuGet package version, for example 1.0.0 or 1.0.0-preview.1
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nuget-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name != 'workflow_dispatch' }}
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_NOLOGO: true
+  PACKAGE_VERSION: ${{ github.event_name == 'workflow_dispatch' && inputs.version || format('0.0.0-ci.{0}', github.run_number) }}
+
+jobs:
+  package:
+    name: Build, test, and pack
+    runs-on: macos-15
+    timeout-minutes: 45
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+
+      - name: Set up .NET 10
+        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
+        with:
+          dotnet-version: 10.0.x
+          workloads: ios
+
+      - name: Validate package version
+        shell: bash
+        run: |
+          if [[ ! "$PACKAGE_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+([-.][0-9A-Za-z.-]+)?$ ]]; then
+            echo "Invalid NuGet version: $PACKAGE_VERSION" >&2
+            exit 1
+          fi
+
+      - name: Restore packages
+        run: dotnet restore LiquidGlassGallery.sln
+
+      - name: Run tests
+        run: dotnet test LiquidGlassGallery.Tests/LiquidGlassGallery.Tests.csproj --configuration Release --no-restore
+
+      - name: Create NuGet packages
+        run: |
+          mkdir -p artifacts/packages
+          dotnet pack Uno.Themes.LiquidGlass/Uno.Themes.LiquidGlass.csproj --configuration Release --no-restore --output artifacts/packages -p:PackageVersion="$PACKAGE_VERSION"
+          dotnet pack CommunityToolkit.LiquidGlass/CommunityToolkit.LiquidGlass.csproj --configuration Release --no-restore --output artifacts/packages -p:PackageVersion="$PACKAGE_VERSION"
+          dotnet pack DevWinUI.LiquidGlass/DevWinUI.LiquidGlass.csproj --configuration Release --no-restore --output artifacts/packages -p:PackageVersion="$PACKAGE_VERSION"
+
+      - name: Verify package set
+        shell: bash
+        run: |
+          shopt -s nullglob
+          packages=(artifacts/packages/*.nupkg)
+          symbols=(artifacts/packages/*.snupkg)
+
+          if [[ ${#packages[@]} -ne 3 ]]; then
+            echo "Expected 3 NuGet packages, found ${#packages[@]}" >&2
+            exit 1
+          fi
+
+          if [[ ${#symbols[@]} -ne 3 ]]; then
+            echo "Expected 3 symbol packages, found ${#symbols[@]}" >&2
+            exit 1
+          fi
+
+          for package in "${packages[@]}" "${symbols[@]}"; do
+            unzip -t "$package" >/dev/null
+          done
+
+          for id in Uno.Themes.LiquidGlass CommunityToolkit.LiquidGlass DevWinUI.LiquidGlass; do
+            test -f "artifacts/packages/${id}.${PACKAGE_VERSION}.nupkg"
+            test -f "artifacts/packages/${id}.${PACKAGE_VERSION}.snupkg"
+          done
+
+      - name: Upload packages for review
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: nuget-packages-${{ env.PACKAGE_VERSION }}
+          path: |
+            artifacts/packages/*.nupkg
+            artifacts/packages/*.snupkg
+          if-no-files-found: error
+          retention-days: 14
+
+  publish:
+    name: Publish to NuGet.org
+    if: github.event_name == 'workflow_dispatch'
+    needs: package
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: nuget.org
+      url: https://www.nuget.org/profiles/${{ vars.NUGET_USER }}
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Set up .NET 10
+        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Download approved packages
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: nuget-packages-${{ env.PACKAGE_VERSION }}
+          path: artifacts/packages
+
+      - name: Sign in to NuGet.org with trusted publishing
+        id: nuget-login
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
+        with:
+          user: ${{ vars.NUGET_USER }}
+
+      - name: Publish packages
+        env:
+          NUGET_API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
+        run: dotnet nuget push "artifacts/packages/*.nupkg" --source https://api.nuget.org/v3/index.json --skip-duplicate
+
+      - name: Publish symbol packages
+        env:
+          NUGET_API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
+        run: dotnet nuget push "artifacts/packages/*.snupkg" --source https://api.nuget.org/v3/index.json --skip-duplicate

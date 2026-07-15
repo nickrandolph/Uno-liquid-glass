@@ -3,6 +3,11 @@
     <TargetFrameworks>net10.0;net10.0-ios;net10.0-desktop</TargetFrameworks>
     <UnoSingleProject>true</UnoSingleProject>
     <OutputType>Library</OutputType>
+    <IsPackable>true</IsPackable>
+    <PackageId>Uno.Themes.LiquidGlass</PackageId>
+    <Title>Liquid Glass Theme for Uno Platform</Title>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageTags>uno-platform;winui;liquid-glass;theme;macos;ios;ipados;xaml</PackageTags>
     <!-- Ensures the .xr.xml files are generated in a proper layout folder -->
     <GenerateLibraryLayout>true</GenerateLibraryLayout>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -19,4 +24,8 @@
       SkiaRenderer;
     </UnoFeatures>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
 </Project>
