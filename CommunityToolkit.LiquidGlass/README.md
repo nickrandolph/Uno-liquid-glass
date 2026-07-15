@@ -1,9 +1,9 @@
-# CommunityToolkit.LiquidGlass
+# LiquidGlass.CommunityToolkit
 
 Liquid Glass resources for Windows Community Toolkit controls used by Uno Platform
 applications on macOS and iPadOS.
 
-This package extends `Uno.Themes.LiquidGlass` with themed resources for settings
+This package extends `LiquidGlass.Uno` with themed resources for settings
 cards and expanders, segmented controls, tokenizing text boxes, range selectors,
 color pickers, sizers, headered controls, metadata, and DataGrid.
 

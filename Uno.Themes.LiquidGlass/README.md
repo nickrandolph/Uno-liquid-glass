@@ -1,4 +1,4 @@
-# Uno.Themes.LiquidGlass
+# LiquidGlass.Uno
 
 Apple's [Liquid Glass](https://developer.apple.com/documentation/technologyoverviews/adopting-liquid-glass)
 design language as a reusable Uno Platform theme, structured the same way as

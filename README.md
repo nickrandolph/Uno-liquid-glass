@@ -22,10 +22,10 @@ The projects use **Uno Platform 6.5.36**, the **.NET 10** TFMs above, and the
 `SkiaRenderer` Uno feature. Windows, Linux, Android, and browser/WebAssembly targets
 are not part of the current supported or validated system.
 
-| Project | Purpose |
+| Package / project | Purpose |
 | --- | --- |
-| `Uno.Themes.LiquidGlass` | Reusable Liquid Glass styles for WinUI and Uno controls. |
-| `CommunityToolkit.LiquidGlass` | Liquid Glass resources for the Windows Community Toolkit controls used by the gallery. |
+| `LiquidGlass.Uno` | Reusable Liquid Glass styles for WinUI and Uno controls. |
+| `LiquidGlass.CommunityToolkit` | Liquid Glass resources for the Windows Community Toolkit controls used by the gallery. |
 | `DevWinUI.LiquidGlass` | Liquid Glass implementations of the DevWinUI-inspired controls used by the gallery. |
 | `LiquidGlassGallery` | Sample application for macOS and iPadOS. |
 | `LiquidGlassGallery.Tests` | NUnit tests for the theme dictionaries, styles, and design invariants. |
@@ -154,12 +154,12 @@ After a release has been published, install the core theme, then add either exte
 package when the application uses those controls:
 
 ```bash
-dotnet add package Uno.Themes.LiquidGlass
-dotnet add package CommunityToolkit.LiquidGlass
+dotnet add package LiquidGlass.Uno
+dotnet add package LiquidGlass.CommunityToolkit
 dotnet add package DevWinUI.LiquidGlass
 ```
 
-The Community Toolkit and DevWinUI packages declare `Uno.Themes.LiquidGlass` as a
+The Community Toolkit and DevWinUI packages declare `LiquidGlass.Uno` as a
 dependency, so installing either extension also restores the core theme. Each package
 contains assemblies for `net10.0`, `net10.0-desktop`, and `net10.0-ios`, a NuGet
 README, MIT license metadata, repository/source metadata, and a portable-symbol

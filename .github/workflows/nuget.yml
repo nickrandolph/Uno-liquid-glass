@@ -84,7 +84,7 @@ jobs:
             unzip -t "$package" >/dev/null
           done
 
-          for id in Uno.Themes.LiquidGlass CommunityToolkit.LiquidGlass DevWinUI.LiquidGlass; do
+          for id in LiquidGlass.Uno LiquidGlass.CommunityToolkit DevWinUI.LiquidGlass; do
             test -f "artifacts/packages/${id}.${PACKAGE_VERSION}.nupkg"
             test -f "artifacts/packages/${id}.${PACKAGE_VERSION}.snupkg"
           done
