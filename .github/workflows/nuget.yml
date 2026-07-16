@@ -48,18 +48,20 @@ jobs:
 
   apple:
     name: Build iOS demo and libraries
-    runs-on: macos-15
+    runs-on: macos-26
     timeout-minutes: 45
     steps:
       - name: Check out source
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - name: Select Xcode 26.6
+        run: sudo xcode-select --switch /Applications/Xcode_26.6.app/Contents/Developer
       - name: Set up .NET 10 and iOS
         uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
         with:
           dotnet-version: 10.0.x
           workloads: ios
       - name: Build iOS simulator demo and libraries
-        run: dotnet build LiquidGlassGallery/LiquidGlassGallery.csproj --configuration Debug --framework net10.0-ios -p:RuntimeIdentifier=iossimulator-arm64
+        run: dotnet build LiquidGlassGallery/LiquidGlassGallery.csproj --configuration Debug --framework net10.0-ios -p:TargetFrameworks=net10.0-ios -p:RuntimeIdentifier=iossimulator-arm64
 
   winui:
     name: Build WinUI 3 demo and libraries
@@ -73,18 +75,25 @@ jobs:
         with:
           dotnet-version: 10.0.x
       - name: Build WinUI 3 demo and libraries
-        run: dotnet build LiquidGlassGallery/LiquidGlassGallery.csproj --configuration Release --framework net10.0-windows10.0.26100
+        shell: pwsh
+        run: |
+          $msbuild = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -requires Microsoft.Component.MSBuild -find "MSBuild\**\Bin\MSBuild.exe" | Select-Object -First 1
+          if (-not $msbuild) { throw "Visual Studio MSBuild was not found." }
+          & $msbuild LiquidGlassGallery/LiquidGlassGallery.csproj /restore /target:Build /property:Configuration=Release /property:TargetFramework=net10.0-windows10.0.26100 /property:TargetFrameworks=net10.0-windows10.0.26100
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
   package-base:
     name: Pack portable, mobile, WebAssembly, and desktop assets
     needs: [cross-platform, apple, winui]
-    runs-on: macos-15
+    runs-on: macos-26
     timeout-minutes: 60
     steps:
       - name: Check out source
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
+      - name: Select Xcode 26.6
+        run: sudo xcode-select --switch /Applications/Xcode_26.6.app/Contents/Developer
       - name: Set up .NET 10 and workloads
         uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
         with:
@@ -128,8 +137,10 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force artifacts/packages | Out-Null
+          $msbuild = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -requires Microsoft.Component.MSBuild -find "MSBuild\**\Bin\MSBuild.exe" | Select-Object -First 1
+          if (-not $msbuild) { throw "Visual Studio MSBuild was not found." }
           foreach ($project in @('Uno.Themes.LiquidGlass', 'CommunityToolkit.LiquidGlass', 'DevWinUI.LiquidGlass')) {
-            dotnet pack "$project/$project.csproj" --configuration Release --output artifacts/packages -p:PackageVersion="$env:PACKAGE_VERSION" -p:TargetFrameworks=net10.0-windows10.0.26100
+            & $msbuild "$project/$project.csproj" /restore /target:Pack /property:Configuration=Release /property:PackageOutputPath="$pwd/artifacts/packages" /property:PackageVersion="$env:PACKAGE_VERSION" /property:TargetFrameworks=net10.0-windows10.0.26100
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           }
       - name: Upload Windows packages
