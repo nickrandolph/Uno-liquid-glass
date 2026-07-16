@@ -27,10 +27,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Uno.Themes.LiquidGlass\Uno.Themes.LiquidGlass.csproj" />
-    <ProjectReference Include="..\DevWinUI.LiquidGlass\DevWinUI.LiquidGlass.csproj" />
-    <ProjectReference Include="..\CommunityToolkit.LiquidGlass\CommunityToolkit.LiquidGlass.csproj" />
-    <ProjectReference Include="..\Uno.Toolkit.LiquidGlass\Uno.Toolkit.LiquidGlass.csproj" />
+    <PackageReference Include="LiquidGlass.Uno" />
+    <PackageReference Include="DevWinUI.LiquidGlass" />
+    <PackageReference Include="LiquidGlass.CommunityToolkit" />
+    <PackageReference Include="LiquidGlass.UnoToolkit" />
   </ItemGroup>
 
 </Project>
